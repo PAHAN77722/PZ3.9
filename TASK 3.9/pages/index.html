@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select, input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #0077cc;
+            box-shadow: 0 0 5px #0077cc;
+        }
+
+        button {
+            background-color: #0077cc;
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <label>
+        Select currency from:
+        <select id="selectFrom"></select>
+    </label>
+    <label>
+        Write value
+        <input type="text" id="inputValue">
+    </label>
+    <label>
+        Select currency to:
+        <select id="selectTo"></select>
+    </label>
+    <button id="convertButton">Convert</button>
+    <div id="result">Result:</div>
+</div>
+<script>
+    const selectTo = document.getElementById("selectTo")
+    const selectFrom = document.getElementById("selectFrom")
+    const convertButton = document.getElementById("convertButton")
+    const inputValue = document.getElementById("inputValue")
+    const resultDiv = document.getElementById("result")
+
+    fetch('http://localhost:3000/api/currencies-name')
+        .then((response) => {
+            return response.json();
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+        .then((data) => {
+            for (const el of data) {
+                selectTo.innerHTML += `<option>${el.ccy}</option>`
+                selectFrom.innerHTML += `<option>${el.ccy}</option>`
+            }
+        });
+
+    convertButton.addEventListener("click", () => {
+        if (isNaN(parseInt(inputValue.value))) {
+            alert("Not correct value")
+            return
+        }
+
+        const to = selectTo.options[selectTo.selectedIndex].value
+        const from = selectFrom.options[selectFrom.selectedIndex].value
+
+        const obj = {to, from, value: inputValue.value}
+
+        fetch("http://localhost:3000/api/convert", {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(obj)
+        })
+            .then((response) => {
+            return response.json();
+        })
+            .catch((err) => {
+                console.log(err)
+            })
+            .then((data) => {
+              resultDiv.innerHTML = `Result: ${data.result} ${to}`
+            });
+    })
+</script>
+</body>
+</html>
